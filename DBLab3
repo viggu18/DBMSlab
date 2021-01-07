@@ -1,0 +1,176 @@
+create table ACTOR(Act_id integer primary key,Act_Name varchar(20),Act_Gender varchar(1));
+        
+        create table DIRECTOR(Dir_id integer primary key,Dir_Name varchar(20),Dir_Phone varchar(10));
+                                                                               
+        create table MOVIES(Mov_id integer primary key,Mov_Title varchar(20),Mov_Year integer,Mov_Lang varchar(10),Dir_id integer,foreign key(Dir_id)references DIRECTOR(Dir_id)on delete cascade);                                                              
+        
+        create table MOVIE_CAST(Act_id integer,Mov_id integer,Role varchar(10),primary key(Act_id,Mov_id),foreign key(Act_id)references ACTOR(Act_id)on delete cascade,foreign key(Mov_id)references MOVIES(Mov_id)on delete cascade);                                       
+                                                  
+        create table RATING(Mov_id integer primary key,Rev_Stars integer,foreign key(Mov_id)references MOVIES(Mov_id)on delete cascade);
+                                                                             
+        insert into ACTOR values(300,'Siddharth','M');
+        insert into ACTOR values(301,'Alia','F');
+        insert into ACTOR values(302,'Mr.Bean','M');
+        insert into ACTOR values(303,'Tom Cruse','M');      
+        insert into ACTOR values(304,'Deepika','F');
+                                                                               
+        insert into DIRECTOR values(100,'Rajkumar Hirani','9900000000');
+        insert into DIRECTOR values(101,'Hitchcock','9800000000');
+        insert into DIRECTOR values(102,'Sandeep','9700000000');
+        insert into DIRECTOR values(103,'Shiva','9600000000');
+        insert into DIRECTOR values(104,'Stevan Spielberg','9500000000');
+                                                                                       
+        insert into MOVIES values(1001,'3 idiots',2018,'Hindi',102);
+        insert into MOVIES values(1002,'PK',2020,'Hindi',102);
+        insert into MOVIES values(1003,'Googli',1998,'Kannada',103);
+        insert into MOVIES values(1004,'Scam-1992',2011,'English',101);
+        insert into MOVIES values(1005,'Bangalore days',2015,'Malayalam',104);
+                                                                                                
+        insert into MOVIE_CAST values(300,1003,'Hero');
+        insert into MOVIE_CAST values(301,1003,'Heroine');
+        insert into MOVIE_CAST values(302,1004,'Guest');
+        insert into MOVIE_CAST values(301,1001,'Villain');
+        insert into MOVIE_CAST values(304,1001,'Heroine');
+                                                                                                
+        insert into RATING values(1001,9);
+        insert into RATING values(1002,7);
+        insert into RATING values(1003,9);
+        insert into RATING values(1004,6);
+        insert into RATING values(1005,0);
+
+---
+
+**Query #1**
+
+    select * from ACTOR;
+
+| Act_id | Act_Name  | Act_Gender |
+| ------ | --------- | ---------- |
+| 300    | Siddharth | M          |
+| 301    | Alia      | F          |
+| 302    | Mr.Bean   | M          |
+| 303    | Tom Cruse | M          |
+| 304    | Deepika   | F          |
+
+---
+**Query #2**
+
+    select * from DIRECTOR;
+
+| Dir_id | Dir_Name         | Dir_Phone  |
+| ------ | ---------------- | ---------- |
+| 100    | Rajkumar Hirani  | 9900000000 |
+| 101    | Hitchcock        | 9800000000 |
+| 102    | Sandeep          | 9700000000 |
+| 103    | Shiva            | 9600000000 |
+| 104    | Stevan Spielberg | 9500000000 |
+
+---
+**Query #3**
+
+    select * from MOVIES;
+
+| Mov_id | Mov_Title      | Mov_Year | Mov_Lang  | Dir_id |
+| ------ | -------------- | -------- | --------- | ------ |
+| 1001   | 3 idiots       | 2018     | Hindi     | 102    |
+| 1002   | PK             | 2020     | Hindi     | 102    |
+| 1003   | Googli         | 1998     | Kannada   | 103    |
+| 1004   | Scam-1992      | 2011     | English   | 101    |
+| 1005   | Bangalore days | 2015     | Malayalam | 104    |
+
+---
+**Query #4**
+
+    select * from MOVIE_CAST;
+
+| Act_id | Mov_id | Role    |
+| ------ | ------ | ------- |
+| 300    | 1003   | Hero    |
+| 301    | 1001   | Villain |
+| 301    | 1003   | Heroine |
+| 302    | 1004   | Guest   |
+| 304    | 1001   | Heroine |
+
+---
+**Query #5**
+
+    select * from RATING;
+
+| Mov_id | Rev_Stars |
+| ------ | --------- |
+| 1001   | 9         |
+| 1002   | 7         |
+| 1003   | 9         |
+| 1004   | 6         |
+| 1005   | 0         |
+
+---
+**Query #6**
+
+    select M.Mov_Title
+    from DIRECTOR D, MOVIES M
+    where D.Dir_id = M.Dir_id and D.Dir_Name = 'Hitchcock';
+
+| Mov_Title |
+| --------- |
+| Scam-1992 |
+
+---
+**Query #7**
+
+    select Mov_Title 
+    from MOVIES M, MOVIE_CAST C 
+    where M.Mov_id=C.Mov_id 
+    and Act_id in (select C.Act_id 
+                   from MOVIE_CAST 
+                   group by Act_id 
+                   having count(*)>1)
+    group by Mov_Title 
+    having count(*)>1;
+
+| Mov_Title |
+| --------- |
+| 3 idiots  |
+| Googli    |
+
+---
+**Query #8**
+
+    select Mov_Title ,Rev_Stars 
+    from MOVIES M, RATING R 
+    where M.Mov_id=R.Mov_id 
+    and Rev_Stars in (select max(Rev_Stars) 
+                      from RATING) 
+    order by Mov_Title;
+
+| Mov_Title | Rev_Stars |
+| --------- | --------- |
+| 3 idiots  | 9         |
+| Googli    | 9         |
+
+---
+**Query #9**
+
+    update RATING 
+    set Rev_Stars=5 
+    where Mov_id in (select Mov_id 
+                     from MOVIES M, DIRECTOR D 
+                     where M.Dir_id=D.Dir_id and Dir_Name='Stevan Spielberg');
+
+There are no results to be displayed.
+
+---
+**Query #10**
+
+    select * from RATING;
+
+| Mov_id | Rev_Stars |
+| ------ | --------- |
+| 1001   | 9         |
+| 1002   | 7         |
+| 1003   | 9         |
+| 1004   | 6         |
+| 1005   | 5         |
+
+---
+
